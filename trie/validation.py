@@ -6,19 +6,23 @@ from trie.constants import (
 from trie.exceptions import (
     ValidationError,
 )
+from typing import (
+    Any,
+    List,
+)
 
 
-def validate_is_bytes(value):
+def validate_is_bytes(value: Any) -> None:
     if not isinstance(value, bytes):
         raise ValidationError(f"Value is not of type `bytes`: got '{type(value)}'")
 
 
-def validate_length(value, length):
+def validate_length(value: bytes, length: int) -> None:
     if len(value) != length:
         raise ValidationError(f"Value is of length {len(value)}.  Must be {length}")
 
 
-def validate_is_node(node):
+def validate_is_node(node: Any) -> None:
     if node == BLANK_NODE:
         return
     elif len(node) == 2:
@@ -42,7 +46,7 @@ def validate_is_node(node):
         raise ValidationError(f"Invalid Node: {node}")
 
 
-def validate_is_bin_node(node):
+def validate_is_bin_node(node: bytes) -> None:
     if node == BLANK_HASH or node[0] in BINARY_TRIE_NODE_TYPES:
         return
     else:

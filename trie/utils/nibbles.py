@@ -1,4 +1,10 @@
 import itertools
+from typing import (
+    Iterator,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 from eth_utils import (
     to_tuple,
@@ -16,10 +22,10 @@ from trie.exceptions import (
     InvalidNibbles,
 )
 
-NIBBLES_LOOKUPS = {byte: (byte >> 4, byte & 15) for byte in range(256)}
+NIBBLES_LOOKUPS: bytes = bytes((byte >> 4, byte & 15) for byte in range(256))
 
 
-def _bytes_to_nibbles(value):
+def _bytes_to_nibbles(value: bytes) -> Iterator[int]:
     """
     Convert a byte string to nibbles
     """
@@ -27,15 +33,15 @@ def _bytes_to_nibbles(value):
         yield from NIBBLES_LOOKUPS[byte]
 
 
-def bytes_to_nibbles(value):
+def bytes_to_nibbles(value: bytes) -> Tuple[int, ...]:
     return tuple(_bytes_to_nibbles(value))
 
 
-VALID_NIBBLES = set(range(16))
-REVERSE_NIBBLES_LOOKUP = {value: key for key, value in NIBBLES_LOOKUPS.items()}
+VALID_NIBBLES: set = set(range(16))
+REVERSE_NIBBLES_LOOKUP: dict = {value: key for key, value in NIBBLES_LOOKUPS.items()}
 
 
-def nibbles_to_bytes(nibbles):
+def nibbles_to_bytes(nibbles: Sequence[int]) -> bytes:
     if any(nibble not in VALID_NIBBLES for nibble in nibbles):
         raise InvalidNibbles(
             "Nibbles contained invalid value.  Must be constrained between [0, 15]"
@@ -48,25 +54,25 @@ def nibbles_to_bytes(nibbles):
     return value
 
 
-def is_nibbles_terminated(nibbles):
-    return nibbles and nibbles[-1] == NIBBLE_TERMINATOR
+def is_nibbles_terminated(nibbles: Sequence[int]) -> bool:
+    return bool(nibbles) and nibbles[-1] == NIBBLE_TERMINATOR
 
 
 @to_tuple
-def add_nibbles_terminator(nibbles):
+def add_nibbles_terminator(nibbles: Sequence[int]) -> Iterator[int]:
     if is_nibbles_terminated(nibbles):
         return nibbles
     return itertools.chain(nibbles, (NIBBLE_TERMINATOR,))
 
 
 @to_tuple
-def remove_nibbles_terminator(nibbles):
+def remove_nibbles_terminator(nibbles: Sequence[int]) -> Iterator[int]:
     if is_nibbles_terminated(nibbles):
         return nibbles[:-1]
     return nibbles
 
 
-def encode_nibbles(nibbles):
+def encode_nibbles(nibbles: Sequence[int]) -> bytes:
     """
     The Hex Prefix function
     """
@@ -99,7 +105,7 @@ def encode_nibbles(nibbles):
     return prefixed_value
 
 
-def decode_nibbles(value):
+def decode_nibbles(value: bytes) -> Tuple[int, ...]:
     """
     The inverse of the Hex Prefix function
     """

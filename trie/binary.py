@@ -1,7 +1,17 @@
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
+
 from eth_hash.auto import (
     keccak,
 )
-
 from trie.constants import (
     BLANK_HASH,
     BRANCH_TYPE,
@@ -30,12 +40,12 @@ from trie.validation import (
 
 
 class BinaryTrie:
-    def __init__(self, db, root_hash=BLANK_HASH):
+    def __init__(self, db: Dict[bytes, bytes], root_hash: bytes = BLANK_HASH) -> None:
         self.db = db
         validate_is_bytes(root_hash)
         self.root_hash = root_hash
 
-    def get(self, key):
+    def get(self, key: bytes) -> Optional[bytes]:
         """
         Fetches the value with a given keypath from the given node.
 
@@ -45,7 +55,7 @@ class BinaryTrie:
 
         return self._get(self.root_hash, encode_to_bin(key))
 
-    def _get(self, node_hash, keypath):
+    def _get(self, node_hash: bytes, keypath: bytes) -> Optional[bytes]:
         """
         Note: keypath should be in binary array format, i.e., encoded by encode_to_bin()
         """
@@ -76,7 +86,7 @@ class BinaryTrie:
             else:
                 return self._get(right_child, keypath[1:])
 
-    def set(self, key, value):
+    def set(self, key: bytes, value: bytes) -> None:
         """
         Sets the value at the given keypath from the given node
 
@@ -87,7 +97,11 @@ class BinaryTrie:
 
         self.root_hash = self._set(self.root_hash, encode_to_bin(key), value)
 
-    def _set(self, node_hash, keypath, value, if_delete_subtrie=False):
+    def _set(self,
+             node_hash: bytes,
+             keypath: bytes,
+             value: bytes,
+             if_delete_subtrie: bool = False) -> bytes:
         """
         If if_delete_subtrie is set to True, what it will do is that it take in a
         keypath and traverse til the end of keypath, then delete the whole subtrie
@@ -155,14 +169,14 @@ class BinaryTrie:
 
     def _set_kv_node(
         self,
-        keypath,
-        node_hash,
-        node_type,
-        left_child,
-        right_child,
-        value,
-        if_delete_subtrie=False,
-    ):
+        keypath: bytes,
+        node_hash: bytes,
+        node_type: int,
+        left_child: bytes,
+        right_child: bytes,
+        value: bytes,
+        if_delete_subtrie: bool = False,
+    ) -> bytes:
         # Keypath prefixes match
         if if_delete_subtrie:
             if len(keypath) < len(left_child) and keypath == left_child[: len(keypath)]:
@@ -257,13 +271,13 @@ class BinaryTrie:
 
     def _set_branch_node(
         self,
-        keypath,
-        node_type,
-        left_child,
-        right_child,
-        value,
-        if_delete_subtrie=False,
-    ):
+        keypath: bytes,
+        node_type: int,
+        left_child: bytes,
+        right_child: bytes,
+        value: bytes,
+        if_delete_subtrie: bool = False,
+    ) -> bytes:
         # Which child node to update? Depends on first bit in keypath
         if keypath[:1] == BYTE_0:
             new_left_child = self._set(
@@ -303,12 +317,12 @@ class BinaryTrie:
                 encode_branch_node(new_left_child, new_right_child)
             )
 
-    def exists(self, key):
+    def exists(self, key: bytes) -> bool:
         validate_is_bytes(key)
 
         return self.get(key) is not None
 
-    def delete(self, key):
+    def delete(self, key: bytes) -> None:
         """
         Equals to setting the value to None
         """
@@ -316,7 +330,7 @@ class BinaryTrie:
 
         self.root_hash = self._set(self.root_hash, encode_to_bin(key), b"")
 
-    def delete_subtrie(self, key):
+    def delete_subtrie(self, key: bytes) -> None:
         """
         Given a key prefix, delete the whole subtrie that starts with the key prefix.
 
@@ -337,11 +351,11 @@ class BinaryTrie:
     # Convenience
     #
     @property
-    def root_node(self):
+    def root_node(self) -> bytes:
         return self.db[self.root_hash]
 
     @root_node.setter
-    def root_node(self, node):
+    def root_node(self, node: bytes) -> None:
         validate_is_bin_node(node)
 
         self.root_hash = self._hash_and_save(node)
@@ -349,7 +363,7 @@ class BinaryTrie:
     #
     # Utils
     #
-    def _hash_and_save(self, node):
+    def _hash_and_save(self, node: bytes) -> bytes:
         """
         Saves a node into the database and returns its hash
         """
@@ -362,14 +376,14 @@ class BinaryTrie:
     #
     # Dictionary API
     #
-    def __getitem__(self, key):
+    def __getitem__(self, key: bytes) -> Optional[bytes]:
         return self.get(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: bytes, value: bytes) -> None:
         return self.set(key, value)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: bytes) -> None:
         return self.delete(key)
 
-    def __contains__(self, key):
+    def __contains__(self, key: bytes) -> bool:
         return self.exists(key)

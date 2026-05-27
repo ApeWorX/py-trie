@@ -1,3 +1,10 @@
+from typing import (
+    Dict,
+    Iterator,
+    Optional,
+    Tuple,
+)
+
 from eth_hash.auto import (
     keccak,
 )
@@ -27,7 +34,7 @@ from trie.validation import (
 )
 
 
-def check_if_branch_exist(db, root_hash, key_prefix):
+def check_if_branch_exist(db: Dict[bytes, bytes], root_hash: bytes, key_prefix: bytes) -> bool:
     """
     Given a key prefix, return whether this prefix is
     the prefix of an existing key in the trie.
@@ -37,7 +44,7 @@ def check_if_branch_exist(db, root_hash, key_prefix):
     return _check_if_branch_exist(db, root_hash, encode_to_bin(key_prefix))
 
 
-def _check_if_branch_exist(db, node_hash, key_prefix):
+def _check_if_branch_exist(db: Dict[bytes, bytes], node_hash: bytes, key_prefix: bytes) -> bool:
     # Empty trie
     if node_hash == BLANK_HASH:
         return False
@@ -70,7 +77,7 @@ def _check_if_branch_exist(db, node_hash, key_prefix):
         raise Exception("Invariant: unreachable code path")
 
 
-def get_branch(db, root_hash, key):
+def get_branch(db: Dict[bytes, bytes], root_hash: bytes, key: bytes) -> Tuple[bytes, ...]:
     """
     Get a long-format Merkle branch
     """
@@ -79,7 +86,7 @@ def get_branch(db, root_hash, key):
     return tuple(_get_branch(db, root_hash, encode_to_bin(key)))
 
 
-def _get_branch(db, node_hash, keypath):
+def _get_branch(db: Dict[bytes, bytes], node_hash: bytes, keypath: bytes) -> Iterator[bytes]:
     if node_hash == BLANK_HASH:
         return
     node = db[node_hash]
@@ -110,7 +117,7 @@ def _get_branch(db, node_hash, keypath):
         raise Exception("Invariant: unreachable code path")
 
 
-def if_branch_valid(branch, root_hash, key, value):
+def if_branch_valid(branch: Tuple[bytes, ...], root_hash: bytes, key: bytes, value: Optional[bytes]) -> bool:
     # value being None means the key is not in the trie
     if value is not None:
         validate_is_bytes(key)
@@ -124,14 +131,14 @@ def if_branch_valid(branch, root_hash, key, value):
     return True
 
 
-def get_trie_nodes(db, node_hash):
+def get_trie_nodes(db: Dict[bytes, bytes], node_hash: bytes) -> Tuple[bytes, ...]:
     """
     Get full trie of a given root node
     """
     return tuple(_get_trie_nodes(db, node_hash))
 
 
-def _get_trie_nodes(db, node_hash):
+def _get_trie_nodes(db: Dict[bytes, bytes], node_hash: bytes) -> Iterator[bytes]:
     if node_hash in db:
         node = db[node_hash]
     else:
@@ -150,7 +157,7 @@ def _get_trie_nodes(db, node_hash):
         raise Exception("Invariant: unreachable code path")
 
 
-def get_witness_for_key_prefix(db, node_hash, key):
+def get_witness_for_key_prefix(db: Dict[bytes, bytes], node_hash: bytes, key: bytes) -> Tuple[bytes, ...]:
     """
     Get all witness given a keypath prefix.
     Include
@@ -163,7 +170,7 @@ def get_witness_for_key_prefix(db, node_hash, key):
     return tuple(_get_witness_for_key_prefix(db, node_hash, encode_to_bin(key)))
 
 
-def _get_witness_for_key_prefix(db, node_hash, keypath):
+def _get_witness_for_key_prefix(db: Dict[bytes, bytes], node_hash: bytes, keypath: bytes) -> Iterator[bytes]:
     if not keypath:
         yield from get_trie_nodes(db, node_hash)
     if node_hash in db:

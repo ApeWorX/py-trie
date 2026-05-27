@@ -5,9 +5,17 @@ import contextlib
 import functools
 import itertools
 from typing import (
+    Any,
     Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Set,
     Tuple,
     TypeVar,
+    Union,
     cast,
 )
 
@@ -96,7 +104,7 @@ class HexaryTrie:
     BLANK_NODE_HASH = BLANK_NODE_HASH
     BLANK_NODE = BLANK_NODE
 
-    def __init__(self, db, root_hash=BLANK_NODE_HASH, prune=False, ref_count=None):
+    def __init__(self, db: Dict, root_hash: bytes = BLANK_NODE_HASH, prune: bool = False, ref_count: Dict = None) -> None:
         """
         Important note about Pruning:
 
@@ -128,7 +136,7 @@ class HexaryTrie:
                 )
         self._pending_prune_keys = None
 
-    def get(self, key):
+    def get(self, key: bytes) -> bytes:
         validate_is_bytes(key)
 
         trie_key = bytes_to_nibbles(key)

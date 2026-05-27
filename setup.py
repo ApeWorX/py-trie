@@ -46,6 +46,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "eth-hash>=0.1.0",
+        "eth-typing>=2.0.0,<3",
         "eth-utils>=2.0.0",
         "hexbytes>=0.2.3",
         "rlp>=3",

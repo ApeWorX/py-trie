@@ -1,4 +1,12 @@
 import rlp
+from typing import (
+    Any,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 from trie.constants import (
     BLANK_NODE,
@@ -41,7 +49,7 @@ from .nibbles import (
 )
 
 
-def get_node_type(node):
+def get_node_type(node: List) -> int:
     if node == BLANK_NODE:
         return NODE_TYPE_BLANK
     elif len(node) == 2:
@@ -57,11 +65,11 @@ def get_node_type(node):
         raise InvalidNode("Unable to determine node type")
 
 
-def is_blank_node(node):
+def is_blank_node(node: Any) -> bool:
     return node == BLANK_NODE
 
 
-def is_leaf_node(node):
+def is_leaf_node(node: List) -> bool:
     if len(node) != 2:
         return False
     key, _ = node
@@ -69,7 +77,7 @@ def is_leaf_node(node):
     return is_nibbles_terminated(nibbles)
 
 
-def is_extension_node(node):
+def is_extension_node(node: List) -> bool:
     if len(node) != 2:
         return False
     key, _ = node
@@ -77,11 +85,11 @@ def is_extension_node(node):
     return not is_nibbles_terminated(nibbles)
 
 
-def is_branch_node(node):
+def is_branch_node(node: List) -> bool:
     return len(node) == 17
 
 
-def decode_node(encoded_node_or_hash):
+def decode_node(encoded_node_or_hash: Union[bytes, List]) -> Union[bytes, List]:
     if encoded_node_or_hash == BLANK_NODE:
         return BLANK_NODE
     elif isinstance(encoded_node_or_hash, list):
@@ -90,28 +98,28 @@ def decode_node(encoded_node_or_hash):
         return rlp.decode(encoded_node_or_hash)
 
 
-def extract_key(node):
+def extract_key(node: List) -> Tuple[int, ...]:
     prefixed_key, _ = node
     key = remove_nibbles_terminator(decode_nibbles(prefixed_key))
     return key
 
 
-def compute_leaf_key(nibbles):
+def compute_leaf_key(nibbles: Sequence[int]) -> bytes:
     return encode_nibbles(add_nibbles_terminator(nibbles))
 
 
-def compute_extension_key(nibbles):
+def compute_extension_key(nibbles: Sequence[int]) -> bytes:
     return encode_nibbles(nibbles)
 
 
-def get_common_prefix_length(left_key, right_key):
+def get_common_prefix_length(left_key: Tuple, right_key: Tuple) -> int:
     for idx, (left_nibble, right_nibble) in enumerate(zip(left_key, right_key)):
         if left_nibble != right_nibble:
             return idx
     return min(len(left_key), len(right_key))
 
 
-def consume_common_prefix(left_key, right_key):
+def consume_common_prefix(left_key: Sequence[int], right_key: Sequence[int]) -> Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]:
     common_prefix_length = get_common_prefix_length(left_key, right_key)
     common_prefix = left_key[:common_prefix_length]
     left_remainder = left_key[common_prefix_length:]
@@ -119,7 +127,7 @@ def consume_common_prefix(left_key, right_key):
     return common_prefix, left_remainder, right_remainder
 
 
-def key_starts_with(full_key, partial_key):
+def key_starts_with(full_key: Tuple, partial_key: Tuple) -> bool:
     if len(full_key) < len(partial_key):
         return False
     else:
@@ -127,7 +135,7 @@ def key_starts_with(full_key, partial_key):
 
 
 # Binary Trie node utils
-def parse_node(node):
+def parse_node(node: bytes) -> Tuple[int, Optional[bytes], Optional[bytes]]:
     """
     Input: a serialized node
     """
@@ -154,7 +162,7 @@ def parse_node(node):
         raise InvalidNode("Unable to parse node")
 
 
-def encode_kv_node(keypath, child_node_hash):
+def encode_kv_node(keypath: bytes, child_node_hash: bytes) -> bytes:
     """
     Serializes a key/value node
     """
@@ -166,7 +174,7 @@ def encode_kv_node(keypath, child_node_hash):
     return KV_TYPE_PREFIX + encode_from_bin_keypath(keypath) + child_node_hash
 
 
-def encode_branch_node(left_child_node_hash, right_child_node_hash):
+def encode_branch_node(left_child_node_hash: bytes, right_child_node_hash: bytes) -> bytes:
     """
     Serializes a branch node
     """
@@ -177,7 +185,7 @@ def encode_branch_node(left_child_node_hash, right_child_node_hash):
     return BRANCH_TYPE_PREFIX + left_child_node_hash + right_child_node_hash
 
 
-def encode_leaf_node(value):
+def encode_leaf_node(value: bytes) -> bytes:
     """
     Serializes a leaf node
     """

@@ -4,6 +4,9 @@ from eth_utils import (
 from eth_utils.toolz import (
     partition_all,
 )
+from typing import (
+    Iterator,
+)
 
 from trie.constants import (
     EXP,
@@ -14,7 +17,7 @@ from trie.constants import (
 
 
 @apply_to_return_value(bytes)
-def decode_from_bin(input_bin):
+def decode_from_bin(input_bin: bytes) -> Iterator[int]:
     """
     0100000101010111010000110100100101001001 -> ASCII
     """
@@ -23,7 +26,7 @@ def decode_from_bin(input_bin):
 
 
 @apply_to_return_value(bytes)
-def encode_to_bin(value):
+def encode_to_bin(value: bytes) -> Iterator[bool]:
     """
     ASCII -> 0100000101010111010000110100100101001001
     """
@@ -35,7 +38,7 @@ def encode_to_bin(value):
                 yield False
 
 
-def encode_from_bin_keypath(input_bin):
+def encode_from_bin_keypath(input_bin: bytes) -> bytes:
     """
     Encodes a sequence of 0s and 1s into tightly packed bytes
     Used in encoding key path of a KV-NODE
@@ -48,7 +51,7 @@ def encode_from_bin_keypath(input_bin):
         return decode_from_bin(PREFIX_100000 + prefix + padded_bin)
 
 
-def decode_to_bin_keypath(path):
+def decode_to_bin_keypath(path: bytes) -> bytes:
     """
     Decodes bytes into a sequence of 0s and 1s
     Used in decoding key path of a KV-NODE

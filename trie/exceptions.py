@@ -65,7 +65,7 @@ class MissingTrieNode(Exception):
         requested_key: bytes,
         prefix: Nibbles = None,
         *args,
-    ):
+    ) -> None:
         if not isinstance(missing_node_hash, bytes):
             raise TypeError(
                 "Missing node hash must be bytes, was: %r" % missing_node_hash
