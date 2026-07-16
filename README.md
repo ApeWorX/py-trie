@@ -1,7 +1,7 @@
 # Python Implementation of the Ethereum Trie structure
 
 [![Join the conversation on Discord](https://img.shields.io/discord/809793915578089484?color=blue&label=chat&logo=discord&logoColor=white)](https://discord.gg/GHryRvPB84)
-[![Build Status](https://circleci.com/gh/ethereum/py-trie.svg?style=shield)](https://circleci.com/gh/ethereum/py-trie)
+[![Test Status](https://github.com/ApeWorX/py-trie/actions/workflows/test.yaml/badge.svg)](https://github.com/ApeWorX/py-trie/actions/workflows/test.yaml)
 [![PyPI version](https://badge.fury.io/py/trie.svg)](https://badge.fury.io/py/trie)
 [![Python versions](https://img.shields.io/pypi/pyversions/trie.svg)](https://pypi.python.org/pypi/trie)
 
@@ -10,7 +10,7 @@
 
 Read more in the documentation below.
 
-View the [change log](https://github.com/ethereum/py-trie/blob/main/CHANGELOG.rst).
+View the [change log](https://github.com/ApeWorX/py-trie/blob/main/CHANGELOG.rst).
 
 ## Installation
 
@@ -28,22 +28,22 @@ for information on how we do:
 - Pull Requests
 - Documentation
 
-We use [pre-commit](https://pre-commit.com/) to maintain consistent code style. Once
-installed, it will run automatically with every commit. You can also run it manually
-with `make lint`. If you need to make a commit that skips the `pre-commit` checks, you
-can do so with `git commit --no-verify`.
+We use [prek](https://prek.j178.dev) to maintain consistent code style. Once
+installed, it will run automatically with every commit. You can also run the checks
+manually with `uv run prek run --all-files`. If you
+need to make a commit that skips the `prek` checks, you can do so with
+`git commit --no-verify`.
 
 ### Development Environment Setup
 
-You can set up your dev environment with:
+You can set up your dev environment with the `dev` dependency group, which is
+installed by default when you run `uv sync`.
 
 ```sh
-git clone git@github.com:ethereum/py-trie.git
+git clone git@github.com:ApeWorX/py-trie.git
 cd py-trie
-virtualenv -p python3 venv
-. venv/bin/activate
-python -m pip install -e ".[dev]"
-pre-commit install
+uv sync --all-extras
+uv run prek install
 ```
 
 ## Running the tests
@@ -52,31 +52,14 @@ You can run the tests with:
 
 ```sh
 git submodule update --init --recursive
-pytest tests
+uv run --group test pytest tests
 ```
 
 ### Release setup
 
-To release a new version:
-
-```sh
-make release bump=$$VERSION_PART_TO_BUMP$$
-```
-
-#### How to bumpversion
-
-The version format for this repo is `{major}.{minor}.{patch}` for stable, and
-`{major}.{minor}.{patch}-{stage}.{devnum}` for unstable (`stage` can be alpha or beta).
-
-To issue the next version in line, specify which part to bump,
-like `make release bump=minor` or `make release bump=devnum`. This is typically done from the
-main branch, except when releasing a beta (in which case the beta is released from main,
-and the previous stable branch is released from said branch).
-
-If you are in a beta version, `make release bump=stage` will switch to a stable.
-
-To issue an unstable version when the current version is stable, specify the
-new version explicitly, like `make release bump="--new-version 4.0.0-alpha.1 devnum"`
+Releases are published from GitHub Releases. Create a release with the desired tag;
+the release workflow builds the package with `setuptools-scm` deriving the version
+from that tag, then publishes to PyPI using trusted publishing.
 
 ## Usage
 

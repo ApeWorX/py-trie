@@ -1,8 +1,4 @@
-from typing import (
-    Iterable,
-    Optional,
-    Tuple,
-)
+from collections.abc import Iterable
 
 from trie.exceptions import (
     PerfectVisibility,
@@ -33,7 +29,7 @@ class NodeIterator:
     def __init__(self, trie: HexaryTrie) -> None:
         self._trie = trie
 
-    def next(self, key_bytes: Optional[bytes] = None) -> Optional[bytes]:
+    def next(self, key_bytes: bytes | None = None) -> bytes | None:
         """
         Find the next key to the right from the given key, or None if there is
         no key to the right.
@@ -62,7 +58,7 @@ class NodeIterator:
 
     def _get_key_after(
         self, node: HexaryTrieNode, key: Nibbles, traversed: Nibbles
-    ) -> Optional[Nibbles]:
+    ) -> Nibbles | None:
         """
         Find the next key in the trie after key
 
@@ -114,9 +110,7 @@ class NodeIterator:
             # Nothing found in any sub-segments
             return None
 
-    def _get_next_key(
-        self, node: HexaryTrieNode, traversed: Nibbles
-    ) -> Optional[Nibbles]:
+    def _get_next_key(self, node: HexaryTrieNode, traversed: Nibbles) -> Nibbles | None:
         """
         Find the next possible key within the given node
 
@@ -150,7 +144,7 @@ class NodeIterator:
         for key, _ in self.items():
             yield key
 
-    def items(self) -> Iterable[Tuple[bytes, bytes]]:
+    def items(self) -> Iterable[tuple[bytes, bytes]]:
         """
         Iterate over all (key, value) pairs from left to right.
         """
@@ -167,7 +161,7 @@ class NodeIterator:
             if node.value:
                 yield node.value
 
-    def nodes(self) -> Iterable[Tuple[Nibbles, HexaryTrieNode]]:
+    def nodes(self) -> Iterable[tuple[Nibbles, HexaryTrieNode]]:
         """
         Iterate over all trie nodes, starting at the left-most available one (the root),
         then the left-most available one (its left-most child) and so on.

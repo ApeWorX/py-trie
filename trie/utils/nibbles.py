@@ -1,10 +1,5 @@
 import itertools
-from typing import (
-    Iterator,
-    Sequence,
-    Tuple,
-    Union,
-)
+from collections.abc import Iterator, Sequence
 
 from eth_utils import (
     to_tuple,
@@ -22,7 +17,9 @@ from trie.exceptions import (
     InvalidNibbles,
 )
 
-NIBBLES_LOOKUPS: bytes = bytes((byte >> 4, byte & 15) for byte in range(256))
+NIBBLES_LOOKUPS: dict[int, tuple[int, int]] = {
+    byte: (byte >> 4, byte & 15) for byte in range(256)
+}
 
 
 def _bytes_to_nibbles(value: bytes) -> Iterator[int]:
@@ -33,7 +30,7 @@ def _bytes_to_nibbles(value: bytes) -> Iterator[int]:
         yield from NIBBLES_LOOKUPS[byte]
 
 
-def bytes_to_nibbles(value: bytes) -> Tuple[int, ...]:
+def bytes_to_nibbles(value: bytes) -> tuple[int, ...]:
     return tuple(_bytes_to_nibbles(value))
 
 
@@ -105,7 +102,7 @@ def encode_nibbles(nibbles: Sequence[int]) -> bytes:
     return prefixed_value
 
 
-def decode_nibbles(value: bytes) -> Tuple[int, ...]:
+def decode_nibbles(value: bytes) -> tuple[int, ...]:
     """
     The inverse of the Hex Prefix function
     """

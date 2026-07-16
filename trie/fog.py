@@ -1,13 +1,10 @@
 import ast
+from collections.abc import Iterable, Sequence
 from itertools import (
     zip_longest,
 )
 from typing import (
     Any,
-    Dict,
-    Iterable,
-    Sequence,
-    Tuple,
 )
 
 from eth_utils import (
@@ -89,7 +86,7 @@ class HexaryTrieFog:
         except KeyError:
             raise ValidationError(
                 f"Old parent {old_prefix} not found in {new_fog_prefixes!r}"
-            )
+            ) from None
 
         if len(set(sub_segments)) != len(sub_segments):
             raise ValidationError(
@@ -295,9 +292,9 @@ class TrieFrontierCache:
     """
 
     def __init__(self) -> None:
-        self._cache: Dict[Nibbles, Tuple[HexaryTrieNode, Nibbles]] = {}
+        self._cache: dict[Nibbles, tuple[HexaryTrieNode, Nibbles]] = {}
 
-    def get(self, prefix: NibblesInput) -> Tuple[HexaryTrieNode, Nibbles]:
+    def get(self, prefix: NibblesInput) -> tuple[HexaryTrieNode, Nibbles]:
         """
         Find the cached node body of the parent of the given prefix.
 

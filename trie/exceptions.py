@@ -1,5 +1,5 @@
 from typing import (
-    Optional,
+    cast,
 )
 
 from eth_typing import (
@@ -63,20 +63,20 @@ class MissingTrieNode(Exception):
         missing_node_hash: Hash32,
         root_hash: Hash32,
         requested_key: bytes,
-        prefix: Nibbles = None,
+        prefix: Nibbles | None = None,
         *args,
     ) -> None:
         if not isinstance(missing_node_hash, bytes):
             raise TypeError(
-                "Missing node hash must be bytes, was: %r" % missing_node_hash
+                f"Missing node hash must be bytes, was: {missing_node_hash!r}"
             )
         elif not isinstance(root_hash, bytes):
-            raise TypeError("Root hash must be bytes, was: %r" % root_hash)
+            raise TypeError(f"Root hash must be bytes, was: {root_hash!r}")
         elif not isinstance(requested_key, bytes):
-            raise TypeError("Requested key must be bytes, was: %r" % requested_key)
+            raise TypeError(f"Requested key must be bytes, was: {requested_key!r}")
 
         if prefix is not None:
-            prefix_nibbles: Optional[Nibbles] = Nibbles(prefix)
+            prefix_nibbles: Nibbles | None = Nibbles(prefix)
         else:
             prefix_nibbles = None
 
@@ -114,7 +114,7 @@ class MissingTrieNode(Exception):
         return self.args[2]
 
     @property
-    def prefix(self) -> Optional[Nibbles]:
+    def prefix(self) -> Nibbles | None:
         """
         The tuple of nibbles that navigate to the missing node. For example, a missing
         root would have a prefix of (), and a missing left-most child of the
@@ -140,7 +140,7 @@ class MissingTraversalNode(Exception):
     ) -> None:
         if not isinstance(missing_node_hash, bytes):
             raise TypeError(
-                "Missing node hash must be bytes, was: %r" % missing_node_hash
+                f"Missing node hash must be bytes, was: {missing_node_hash!r}"
             )
 
         super().__init__(HexBytes(missing_node_hash), Nibbles(nibbles_traversed), *args)
@@ -266,7 +266,7 @@ class TraversedPartialPath(Exception):
                 (),
                 actual_node.value,
                 trimmed_suffix,
-                [compute_leaf_key(trimmed_suffix), actual_node.raw[1]],
+                [compute_leaf_key(trimmed_suffix), cast(bytes, actual_node.raw[1])],
                 NodeType(NODE_TYPE_LEAF),
             )
         elif len(actual_sub_segments) == 1:
@@ -287,7 +287,10 @@ class TraversedPartialPath(Exception):
                 (trimmed_extension,),
                 actual_node.value,
                 actual_node.suffix,
-                [compute_extension_key(trimmed_extension), actual_node.raw[1]],
+                [
+                    compute_extension_key(trimmed_extension),
+                    cast(bytes, actual_node.raw[1]),
+                ],
                 NodeType(NODE_TYPE_EXTENSION),
             )
         else:

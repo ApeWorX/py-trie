@@ -1,12 +1,10 @@
 import enum
+from collections.abc import Iterable, Sequence
 from typing import (
-    Iterable,
-    List,
     Literal,
     NamedTuple,
     Protocol,
-    Sequence,
-    Tuple,
+    TypeAlias,
     TypeVar,
     Union,
 )
@@ -28,19 +26,10 @@ from trie.constants import (
 # Another option is to manually declare a few levels of the type. It should be possible
 #   to determine the maximum number of embeds with single-nibble keys and single byte
 #   values.
-RawHexaryNode = Union[
-    # Blank node
+# Blank node, or a leaf/extension/branch node.
+RawHexaryNode: TypeAlias = Union[
     Literal[b""],
-    # Leaf or extension node are length 2
-    # Branch node is length 17
-    List[
-        Union[
-            # keys, hashes to next nodes, and values
-            bytes,
-            # embedded subnodes
-            "RawHexaryNode",
-        ]
-    ],
+    list[Union[bytes, "RawHexaryNode"]],
 ]
 
 
@@ -70,7 +59,7 @@ class Nibble(enum.IntEnum):
 NibblesInput = Sequence[int]
 
 
-class Nibbles(Tuple[Nibble, ...]):
+class Nibbles(tuple[Nibble, ...]):
     def __new__(cls, nibbles: NibblesInput) -> "Nibbles":
         if type(nibbles) is Nibbles:
             # instanceof thinks that a Tuple[Nibble, ...] *is* a Nibbles, so we use
@@ -83,7 +72,7 @@ class Nibbles(Tuple[Nibble, ...]):
                 cls, (Nibble(maybe_nibble) for maybe_nibble in nibbles)
             )
 
-    def __add__(self, other: Tuple[Nibble, ...]) -> "Nibbles":
+    def __add__(self, other: tuple[Nibble, ...]) -> "Nibbles":  # type: ignore[override]
         return Nibbles(super().__add__(other))
 
     def _repr_pretty_(self, p, cycle: bool) -> None:
@@ -107,7 +96,7 @@ class HexaryTrieNode(NamedTuple):
     Public API for a node of a trie, it is pre-processed a bit for simplicity.
     """
 
-    sub_segments: Tuple[Nibbles, ...]
+    sub_segments: tuple[Nibbles, ...]
     """
     Sub segments are the _complete_ list of possible subkeys.
     All sub segments *not* listed can be considered to not exist.
@@ -154,29 +143,20 @@ class GenericSortedSet(Protocol[T]):
     sortedcontainers.SortedSet. Feel free to add more as needed.
     """
 
-    def __contains__(self, search_value: T) -> bool:
-        ...
+    def __contains__(self, search_value: T) -> bool: ...
 
-    def __getitem__(self, index: int) -> T:
-        ...
+    def __getitem__(self, index: int) -> T: ...
 
-    def __len__(self) -> int:
-        ...
+    def __len__(self) -> int: ...
 
-    def __iter__(self) -> "GenericSortedSet[T]":
-        ...
+    def __iter__(self) -> "GenericSortedSet[T]": ...
 
-    def __next__(self) -> T:
-        ...
+    def __next__(self) -> T: ...
 
-    def bisect(self, search_value: T) -> int:
-        ...
+    def bisect(self, search_value: T) -> int: ...
 
-    def copy(self) -> "GenericSortedSet[T]":
-        ...
+    def copy(self) -> "GenericSortedSet[T]": ...
 
-    def remove(self, to_remove: T) -> None:
-        ...
+    def remove(self, to_remove: T) -> None: ...
 
-    def update(self, new_values: Iterable[T]) -> None:
-        ...
+    def update(self, new_values: Iterable[T]) -> None: ...

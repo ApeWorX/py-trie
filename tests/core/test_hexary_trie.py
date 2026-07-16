@@ -1,12 +1,13 @@
 import pytest
-from collections import (
-    defaultdict,
-)
 import fnmatch
 import itertools
 import json
 import os
+from collections import (
+    defaultdict,
+)
 
+import rlp
 from eth_utils import (
     decode_hex,
     encode_hex,
@@ -18,9 +19,10 @@ from hypothesis import (
     example,
     given,
     settings,
+)
+from hypothesis import (
     strategies as st,
 )
-import rlp
 
 from trie import (
     HexaryTrie,
@@ -608,7 +610,7 @@ def test_hexary_trie_batch_save_drops_last_root_data_when_pruning():
 
     old_trie = HexaryTrie(db, root_hash=old_root_hash)
     with pytest.raises(MissingTraversalNode) as excinfo:
-        old_trie.root_node
+        _ = old_trie.root_node
 
     assert encode_hex(old_root_hash) in str(excinfo.value)
 
@@ -624,7 +626,7 @@ def test_squash_changes_can_still_access_underlying_deleted_data():
         verify_ref_count(memory_trie)
 
         # change to a root hash that the memory trie doesn't have anymore
-        memory_trie.root_hash
+        _ = memory_trie.root_hash
         memory_trie.root_hash = old_root_hash
 
         assert memory_trie[b"what floats on water?"] == b"very small rocks"
@@ -641,7 +643,7 @@ def test_squash_changes_raises_correct_error_on_new_deleted_data():
         middle_root_hash = memory_trie.root_hash
 
         memory_trie.set(b"what floats on water?", b"ooooohh")
-        memory_trie.root_hash
+        _ = memory_trie.root_hash
         verify_ref_count(memory_trie)
 
         # change to a root hash that the memory trie doesn't have anymore
@@ -683,7 +685,7 @@ def test_squash_changes_reverts_trie_root_on_exception():
             except MissingTrieNode:
                 raise AssertionError(
                     "Only the squash_changes context exit should raise this exception"
-                )
+                ) from None
 
             del memory_trie[b"\xff"]
 
@@ -1095,7 +1097,7 @@ def test_traverse_non_matching_leaf():
     trie = HexaryTrie({})
     EMPTY_NODE = trie.root_node
 
-    trie[b"\xFFleaf-at-root"] = b"some-value"
+    trie[b"\xffleaf-at-root"] = b"some-value"
     final_root = trie.root_node
 
     # Traversing partway into the leaf raises the TraversedPartialPath exception

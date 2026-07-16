@@ -1,17 +1,7 @@
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-)
-
 from eth_hash.auto import (
     keccak,
 )
+
 from trie.constants import (
     BLANK_HASH,
     BRANCH_TYPE,
@@ -40,12 +30,12 @@ from trie.validation import (
 
 
 class BinaryTrie:
-    def __init__(self, db: Dict[bytes, bytes], root_hash: bytes = BLANK_HASH) -> None:
+    def __init__(self, db: dict[bytes, bytes], root_hash: bytes = BLANK_HASH) -> None:
         self.db = db
         validate_is_bytes(root_hash)
         self.root_hash = root_hash
 
-    def get(self, key: bytes) -> Optional[bytes]:
+    def get(self, key: bytes) -> bytes | None:
         """
         Fetches the value with a given keypath from the given node.
 
@@ -55,7 +45,7 @@ class BinaryTrie:
 
         return self._get(self.root_hash, encode_to_bin(key))
 
-    def _get(self, node_hash: bytes, keypath: bytes) -> Optional[bytes]:
+    def _get(self, node_hash: bytes, keypath: bytes) -> bytes | None:
         """
         Note: keypath should be in binary array format, i.e., encoded by encode_to_bin()
         """
@@ -97,11 +87,13 @@ class BinaryTrie:
 
         self.root_hash = self._set(self.root_hash, encode_to_bin(key), value)
 
-    def _set(self,
-             node_hash: bytes,
-             keypath: bytes,
-             value: bytes,
-             if_delete_subtrie: bool = False) -> bytes:
+    def _set(
+        self,
+        node_hash: bytes,
+        keypath: bytes,
+        value: bytes,
+        if_delete_subtrie: bool = False,
+    ) -> bytes:
         """
         If if_delete_subtrie is set to True, what it will do is that it take in a
         keypath and traverse til the end of keypath, then delete the whole subtrie
@@ -376,7 +368,7 @@ class BinaryTrie:
     #
     # Dictionary API
     #
-    def __getitem__(self, key: bytes) -> Optional[bytes]:
+    def __getitem__(self, key: bytes) -> bytes | None:
         return self.get(key)
 
     def __setitem__(self, key: bytes, value: bytes) -> None:

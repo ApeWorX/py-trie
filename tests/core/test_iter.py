@@ -2,12 +2,14 @@ import pytest
 import json
 import os
 
+import rlp
 from hypothesis import (
     example,
     given,
+)
+from hypothesis import (
     strategies as st,
 )
-import rlp
 
 from trie import (
     HexaryTrie,
@@ -107,7 +109,8 @@ def test_iter_values(trie_keys, min_value_length):
     for value in node_iterator.values():
         visited.append(value)
     values_sorted_by_key = [
-        val for _, val in sorted(contents.items())  # only look at value but sort by key
+        val
+        for _, val in sorted(contents.items())  # only look at value but sort by key
     ]
     assert visited == values_sorted_by_key
 

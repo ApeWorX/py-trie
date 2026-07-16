@@ -4,6 +4,8 @@ from hypothesis import (
     example,
     given,
     settings,
+)
+from hypothesis import (
     strategies as st,
 )
 
@@ -290,7 +292,7 @@ def test_trie_walk_root_change_with_traverse(
         except PerfectVisibility:
             raise AssertionError(
                 "Number explorations should be lower than database size, shouldn't finish"  # noqa: E501
-            )
+            ) from None
 
         # Try to navigate to the prefix, catching any errors about
         # nodes missing from the DB
@@ -460,7 +462,7 @@ def test_trie_walk_root_change_with_cached_traverse_from(
         except PerfectVisibility:
             raise AssertionError(
                 "Number explorations should be lower than database size, shouldn't finish"  # noqa: E501
-            )
+            ) from None
 
         try:
             # Use the cache, if possible, to look up the parent node of nearest_prefix
@@ -551,7 +553,7 @@ def test_trie_walk_root_change_with_cached_traverse_from(
                 # Delete the bad cache and try again
                 cache.delete(nearest_prefix)
             else:
-                raise AssertionError(f"Bad node hash request: {node_hash}")
+                raise AssertionError(f"Bad node hash request: {node_hash}") from None
             continue
         except TraversedPartialPath as exc:
             node = exc.simulated_node

@@ -36,7 +36,7 @@ def _insert_squash_test():
 
 
 def main(profile=True):
-    print("testing %s values" % len(TEST_DATA))
+    print(f"testing {len(TEST_DATA)} values")
     tests = [
         ("insert", _insert_test),
         ("insert squash", _insert_squash_test),
@@ -49,10 +49,10 @@ def main(profile=True):
         st = time.time()
         trie = func()
         elapsed = time.time() - st
-        print("time to %s %d - %.2f" % (name, len(TEST_DATA), elapsed))
+        print(f"time to {name} {len(TEST_DATA)} - {elapsed:.2f}")
 
         if profile:
-            print("==== Profiling stats for %s test =========" % name)
+            print(f"==== Profiling stats for {name} test =========")
             profiler.disable()
             stats = pstats.Stats(profiler)
             stats.strip_dirs().sort_stats("cumulative").print_stats(30)
@@ -62,7 +62,7 @@ def main(profile=True):
         for k in sorted(TEST_DATA.keys()):
             trie[k]
         elapsed = time.time() - st
-        print("time to read %d - %.2f" % (len(TEST_DATA), elapsed))
+        print(f"time to read {len(TEST_DATA)} - {elapsed:.2f}")
 
 
 if __name__ == "__main__":

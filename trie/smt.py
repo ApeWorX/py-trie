@@ -1,7 +1,6 @@
+from collections.abc import Sequence
 from typing import (
-    Dict,
-    Sequence,
-    Tuple,
+    cast,
 )
 
 from eth_typing import (
@@ -38,9 +37,9 @@ def calc_root(key: bytes, value: bytes, branch: Sequence[Hash32]) -> Hash32:
 
     .. doctest::
 
-        >>> key = b'\x02'  # Keypath
-        >>> value = b''  # Value (or leaf)
-        >>> branch = tuple([b'\x00'] * 8)  # Any list of hashes
+        >>> key = b"\x02"  # Keypath
+        >>> value = b""  # Value (or leaf)
+        >>> branch = tuple([b"\x00"] * 8)  # Any list of hashes
         >>> calc_root(key, value, branch)
         b'.+4IKt[\xd2\x14\xe4).\xf5\xc6\n\x11=\x01\xe89\xa1Z\x07#\xfd~(;\xfb\xb8\x8a\x0e'  # noqa: E501
 
@@ -61,7 +60,7 @@ def calc_root(key: bytes, value: bytes, branch: Sequence[Hash32]) -> Hash32:
             node_hash = keccak(node_hash + sibling_node)
         target_bit <<= 1
 
-    return node_hash
+    return cast(Hash32, node_hash)
 
 
 class SparseMerkleProof:
@@ -82,13 +81,13 @@ class SparseMerkleProof:
 
         >>> # smt is located on another process or machine
         >>> smt = SparseMerkleTree(key_size=1)
-        >>> our_key = b'\x03'
-        >>> our_value = b'\x01'
+        >>> our_key = b"\x03"
+        >>> our_value = b"\x01"
         >>> smt.set(our_key, our_value)
         >>> # We need to track proof data for *some* reason
         >>> our_proof = SparseMerkleProof(our_key, our_value, smt.branch(our_key))
-        >>> their_key = b'\x05'
-        >>> their_new_value = b'\x01'
+        >>> their_key = b"\x05"
+        >>> their_new_value = b"\x01"
         >>> their_node_updates = smt.set(their_key, their_new_value)
         >>> # tree updates can be communicated over any channel to proof obj
         >>> our_proof.update(their_key, their_new_value, their_node_updates)
@@ -99,13 +98,13 @@ class SparseMerkleProof:
         >>> our_proof.root_hash == smt.root_hash
         True
         >>> # This works for multiple updates
-        >>> our_proof.update(their_key, b'\x02', smt.set(their_key, b'\x02'))
-        >>> our_proof.update(their_key, b'\x03', smt.set(their_key, b'\x03'))
-        >>> our_proof.update(their_key, b'\x04', smt.set(their_key, b'\x04'))
+        >>> our_proof.update(their_key, b"\x02", smt.set(their_key, b"\x02"))
+        >>> our_proof.update(their_key, b"\x03", smt.set(their_key, b"\x03"))
+        >>> our_proof.update(their_key, b"\x04", smt.set(their_key, b"\x04"))
         >>> our_proof.root_hash == smt.root_hash
         True
         >>> # This also works for updates to ourselves
-        >>> our_proof.update(our_key, b'\x05', smt.set(our_key, b'\x05'))
+        >>> our_proof.update(our_key, b"\x05", smt.set(our_key, b"\x05"))
         >>> our_proof.root_hash == smt.root_hash
         True
         >>> our_proof.value
@@ -133,7 +132,7 @@ class SparseMerkleProof:
         return self._value
 
     @property
-    def branch(self) -> Tuple[Hash32]:
+    def branch(self) -> tuple[Hash32, ...]:
         return tuple(self._branch)
 
     @property
@@ -229,7 +228,7 @@ class SparseMerkleTree:
     @classmethod
     def from_db(
         cls,
-        db: Dict[bytes, bytes],
+        db: dict[bytes, bytes],
         root_hash: Hash32,
         key_size: int = 32,
         default: bytes = BLANK_NODE,
@@ -257,7 +256,7 @@ class SparseMerkleTree:
 
         return value
 
-    def branch(self, key: bytes) -> Tuple[Hash32]:
+    def branch(self, key: bytes) -> tuple[Hash32, ...]:
         value, branch = self._get(key)
 
         # Ensure that it isn't blank!
@@ -266,13 +265,13 @@ class SparseMerkleTree:
 
         return branch
 
-    def _get(self, key: bytes) -> Tuple[bytes, Tuple[Hash32]]:
+    def _get(self, key: bytes) -> tuple[bytes, tuple[Hash32, ...]]:
         """
         Returns db value and branch in root->leaf order
         """
         validate_is_bytes(key)
         validate_length(key, self._key_size)
-        branch = []
+        branch: list[Hash32] = []
 
         target_bit = 1 << (self.depth - 1)
         path = to_int(key)
@@ -281,7 +280,7 @@ class SparseMerkleTree:
         # Iterate on the parent
         for _ in range(self.depth):
             node = self.db[node_hash]
-            left, right = node[:32], node[32:]
+            left, right = cast(Hash32, node[:32]), cast(Hash32, node[32:])
             if path & target_bit:
                 branch.append(left)
                 node_hash = right
@@ -294,7 +293,7 @@ class SparseMerkleTree:
         # NOTE: Didn't do exception here for testing purposes
         return self.db[node_hash], tuple(branch)
 
-    def set(self, key: bytes, value: bytes) -> Tuple[Hash32]:
+    def set(self, key: bytes, value: bytes) -> tuple[Hash32, ...]:
         """
         Returns all updated hashes in root->leaf order
         """
@@ -311,7 +310,7 @@ class SparseMerkleTree:
         # branch is in root->leaf order, so flip
         for sibling_node in reversed(branch):
             # Set
-            node_hash = keccak(node)
+            node_hash = cast(Hash32, keccak(node))
             proof_update.append(node_hash)
             self.db[node_hash] = node
 
@@ -324,7 +323,7 @@ class SparseMerkleTree:
             target_bit <<= 1
 
         # Finally, update root hash
-        self.root_hash = keccak(node)
+        self.root_hash = cast(Hash32, keccak(node))
         self.db[self.root_hash] = node
 
         # updates need to be in root->leaf order, so flip back
@@ -340,7 +339,7 @@ class SparseMerkleTree:
         except KeyError:
             return False
 
-    def delete(self, key: bytes) -> Tuple[Hash32]:
+    def delete(self, key: bytes) -> tuple[Hash32, ...]:
         """
         Equals to setting the value to None
         Returns all updated hashes in root->leaf order

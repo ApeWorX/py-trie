@@ -3,6 +3,8 @@ import pytest
 from hypothesis import (
     example,
     given,
+)
+from hypothesis import (
     strategies as st,
 )
 
@@ -35,7 +37,7 @@ def test_valid_nibbles(valid_nibbles):
         ((b"F",), ValueError),
         (b"F", TypeError),
         ((b"\x00",), ValueError),
-        ((b"\x0F",), ValueError),
+        ((b"\x0f",), ValueError),
         (0, TypeError),
         (0xF, TypeError),
         ((0, 0x10), ValueError),

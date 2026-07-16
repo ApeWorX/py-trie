@@ -3,6 +3,8 @@ import pytest
 from hypothesis import (
     given,
     settings,
+)
+from hypothesis import (
     strategies as st,
 )
 
@@ -26,7 +28,7 @@ from trie.exceptions import (
 )
 @settings(max_examples=10, deadline=1000)
 def test_bin_trie_different_order_insert(k, v, random):
-    kv_pairs = list(zip(k, v))
+    kv_pairs = list(zip(k, v, strict=False))
     result = BLANK_HASH
     # Repeat 3 times
     for _ in range(3):

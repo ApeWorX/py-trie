@@ -5,6 +5,8 @@ from eth_utils import (
 )
 from hypothesis import (
     given,
+)
+from hypothesis import (
     strategies as st,
 )
 

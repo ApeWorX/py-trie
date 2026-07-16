@@ -1,12 +1,10 @@
-import rlp
+from collections.abc import Sequence
 from typing import (
     Any,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
+    cast,
 )
+
+import rlp
 
 from trie.constants import (
     BLANK_NODE,
@@ -49,7 +47,7 @@ from .nibbles import (
 )
 
 
-def get_node_type(node: List) -> int:
+def get_node_type(node: list) -> int:
     if node == BLANK_NODE:
         return NODE_TYPE_BLANK
     elif len(node) == 2:
@@ -69,7 +67,7 @@ def is_blank_node(node: Any) -> bool:
     return node == BLANK_NODE
 
 
-def is_leaf_node(node: List) -> bool:
+def is_leaf_node(node: list) -> bool:
     if len(node) != 2:
         return False
     key, _ = node
@@ -77,7 +75,7 @@ def is_leaf_node(node: List) -> bool:
     return is_nibbles_terminated(nibbles)
 
 
-def is_extension_node(node: List) -> bool:
+def is_extension_node(node: list) -> bool:
     if len(node) != 2:
         return False
     key, _ = node
@@ -85,11 +83,11 @@ def is_extension_node(node: List) -> bool:
     return not is_nibbles_terminated(nibbles)
 
 
-def is_branch_node(node: List) -> bool:
+def is_branch_node(node: list) -> bool:
     return len(node) == 17
 
 
-def decode_node(encoded_node_or_hash: Union[bytes, List]) -> Union[bytes, List]:
+def decode_node(encoded_node_or_hash: bytes | list) -> bytes | list:
     if encoded_node_or_hash == BLANK_NODE:
         return BLANK_NODE
     elif isinstance(encoded_node_or_hash, list):
@@ -98,7 +96,7 @@ def decode_node(encoded_node_or_hash: Union[bytes, List]) -> Union[bytes, List]:
         return rlp.decode(encoded_node_or_hash)
 
 
-def extract_key(node: List) -> Tuple[int, ...]:
+def extract_key(node: list) -> tuple[int, ...]:
     prefixed_key, _ = node
     key = remove_nibbles_terminator(decode_nibbles(prefixed_key))
     return key
@@ -112,14 +110,18 @@ def compute_extension_key(nibbles: Sequence[int]) -> bytes:
     return encode_nibbles(nibbles)
 
 
-def get_common_prefix_length(left_key: Tuple, right_key: Tuple) -> int:
-    for idx, (left_nibble, right_nibble) in enumerate(zip(left_key, right_key)):
+def get_common_prefix_length(left_key: tuple, right_key: tuple) -> int:
+    for idx, (left_nibble, right_nibble) in enumerate(
+        zip(left_key, right_key, strict=False)
+    ):
         if left_nibble != right_nibble:
             return idx
     return min(len(left_key), len(right_key))
 
 
-def consume_common_prefix(left_key: Sequence[int], right_key: Sequence[int]) -> Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]:
+def consume_common_prefix(
+    left_key: Sequence[int], right_key: Sequence[int]
+) -> tuple[tuple[int, ...], tuple[int, ...], tuple[int, ...]]:
     common_prefix_length = get_common_prefix_length(left_key, right_key)
     common_prefix = left_key[:common_prefix_length]
     left_remainder = left_key[common_prefix_length:]
@@ -127,15 +129,17 @@ def consume_common_prefix(left_key: Sequence[int], right_key: Sequence[int]) -> 
     return common_prefix, left_remainder, right_remainder
 
 
-def key_starts_with(full_key: Tuple, partial_key: Tuple) -> bool:
+def key_starts_with(full_key: tuple, partial_key: tuple) -> bool:
     if len(full_key) < len(partial_key):
         return False
     else:
-        return all(left == right for left, right in zip(full_key, partial_key))
+        return all(
+            left == right for left, right in zip(full_key, partial_key, strict=False)
+        )
 
 
 # Binary Trie node utils
-def parse_node(node: bytes) -> Tuple[int, Optional[bytes], Optional[bytes]]:
+def parse_node(node: bytes) -> tuple[int, bytes | None, bytes | None]:
     """
     Input: a serialized node
     """
@@ -174,7 +178,9 @@ def encode_kv_node(keypath: bytes, child_node_hash: bytes) -> bytes:
     return KV_TYPE_PREFIX + encode_from_bin_keypath(keypath) + child_node_hash
 
 
-def encode_branch_node(left_child_node_hash: bytes, right_child_node_hash: bytes) -> bytes:
+def encode_branch_node(
+    left_child_node_hash: bytes, right_child_node_hash: bytes
+) -> bytes:
     """
     Serializes a branch node
     """
@@ -203,7 +209,7 @@ def annotate_node(node_body: RawHexaryNode) -> HexaryTrieNode:
     if node_type == NODE_TYPE_LEAF:
         return HexaryTrieNode(
             sub_segments=(),
-            value=bytes(node_body[-1]),
+            value=bytes(cast(bytes, node_body[-1])),
             suffix=Nibbles(extract_key(node_body)),
             raw=node_body,
             node_type=NodeType(node_type),
@@ -214,7 +220,7 @@ def annotate_node(node_body: RawHexaryNode) -> HexaryTrieNode:
         )
         return HexaryTrieNode(
             sub_segments=sub_segments,
-            value=bytes(node_body[-1]),
+            value=bytes(cast(bytes, node_body[-1])),
             suffix=Nibbles(()),
             raw=node_body,
             node_type=NodeType(node_type),

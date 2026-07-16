@@ -9,7 +9,7 @@ def trie_from_keys(keys, minimum_value_length=0, prune=False):
     Return the raw database and the HexaryTrie.
     """
     # Create trie
-    node_db = {}
+    node_db: dict[bytes, bytes] = {}
     trie = HexaryTrie(node_db, prune=prune)
     with trie.squash_changes() as trie_batch:
         for k in keys:

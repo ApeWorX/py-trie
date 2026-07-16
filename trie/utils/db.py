@@ -1,9 +1,7 @@
 import contextlib
+from collections.abc import Iterator
 from typing import (
     Any,
-    Dict,
-    Iterator,
-    Optional,
     TypeVar,
 )
 
@@ -33,9 +31,9 @@ class ScratchDB:
     If any exception occurrs before committing phase, no changes are applied.
     """
 
-    def __init__(self, wrapped_db: Dict) -> None:
+    def __init__(self, wrapped_db: dict) -> None:
         self.wrapped_db = wrapped_db
-        self.cache: Dict = {}
+        self.cache: dict = {}
 
     #
     # Dictionary API

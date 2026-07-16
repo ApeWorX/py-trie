@@ -1,11 +1,10 @@
+from collections.abc import Iterator
+
 from eth_utils import (
     apply_to_return_value,
 )
 from eth_utils.toolz import (
     partition_all,
-)
-from typing import (
-    Iterator,
 )
 
 from trie.constants import (

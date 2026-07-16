@@ -1,3 +1,7 @@
+from typing import (
+    Any,
+)
+
 from trie.constants import (
     BINARY_TRIE_NODE_TYPES,
     BLANK_HASH,
@@ -5,10 +9,6 @@ from trie.constants import (
 )
 from trie.exceptions import (
     ValidationError,
-)
-from typing import (
-    Any,
-    List,
 )
 
 

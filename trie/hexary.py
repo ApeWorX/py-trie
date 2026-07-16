@@ -1,21 +1,12 @@
-from collections import (
-    defaultdict,
-)
 import contextlib
 import functools
 import itertools
+from collections import (
+    defaultdict,
+)
+from collections.abc import Callable
 from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -104,7 +95,13 @@ class HexaryTrie:
     BLANK_NODE_HASH = BLANK_NODE_HASH
     BLANK_NODE = BLANK_NODE
 
-    def __init__(self, db: Dict, root_hash: bytes = BLANK_NODE_HASH, prune: bool = False, ref_count: Dict = None) -> None:
+    def __init__(
+        self,
+        db: dict,
+        root_hash: bytes = BLANK_NODE_HASH,
+        prune: bool = False,
+        ref_count: dict = None,
+    ) -> None:
         """
         Important note about Pruning:
 
@@ -216,11 +213,11 @@ class HexaryTrie:
         else:
             return annotated_node
 
-    def _traverse(self, root_hash, trie_key) -> Tuple[RawHexaryNode, Nibbles]:
+    def _traverse(self, root_hash, trie_key) -> tuple[RawHexaryNode, Nibbles]:
         try:
             root_node = self.get_node(root_hash)
-        except KeyError:
-            raise MissingTraversalNode(root_hash, ())
+        except KeyError as exc:
+            raise MissingTraversalNode(root_hash, ()) from exc
 
         return self._traverse_from(root_node, trie_key)
 
@@ -254,7 +251,7 @@ class HexaryTrie:
 
     def _traverse_from(
         self, node: RawHexaryNode, trie_key
-    ) -> Tuple[RawHexaryNode, Nibbles]:
+    ) -> tuple[RawHexaryNode, Nibbles]:
         """
         Traverse down the trie from the given node, using the trie_key to navigate.
 
@@ -300,7 +297,7 @@ class HexaryTrie:
             except KeyError as exc:
                 used_key = trie_key[: len(trie_key) - len(remaining_key)]
 
-                raise MissingTraversalNode(exc.args[0], used_key)
+                raise MissingTraversalNode(exc.args[0], used_key) from exc
 
         # navigated down the full key
         return node, Nibbles(())
@@ -430,7 +427,7 @@ class HexaryTrie:
             except MissingTrieNode as e:
                 raise BadTrieProof(
                     f"Missing proof node with hash {e.missing_node_hash}"
-                )
+                ) from e
 
     def get_proof(self, key):
         validate_is_bytes(key)
@@ -475,8 +472,8 @@ class HexaryTrie:
     def root_node(self) -> HexaryTrieNode:
         try:
             raw_node = self.get_node(self.root_hash)
-        except KeyError:
-            raise MissingTraversalNode(self.root_hash, nibbles_traversed=())
+        except KeyError as exc:
+            raise MissingTraversalNode(self.root_hash, nibbles_traversed=()) from exc
         else:
             return annotate_node(raw_node)
 
@@ -525,7 +522,7 @@ class HexaryTrie:
                     del self.db[key]
                 except KeyError as exc:
                     raise ValidationError(
-                        "Tried to prune key %r that doesn't exist" % key
+                        f"Tried to prune key {key!r} that doesn't exist"
                     ) from exc
                 else:
                     new_count = 0
