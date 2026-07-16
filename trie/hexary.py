@@ -13,6 +13,7 @@ from typing import (
 from eth_hash.auto import (
     keccak,
 )
+from eth_typing import Hash32
 from eth_utils import (
     to_list,
     to_tuple,
@@ -97,10 +98,10 @@ class HexaryTrie:
 
     def __init__(
         self,
-        db: dict,
+        db,
         root_hash: bytes = BLANK_NODE_HASH,
         prune: bool = False,
-        ref_count: dict = None,
+        ref_count: dict[bytes, int] | None = None,
     ) -> None:
         """
         Important note about Pruning:
@@ -116,6 +117,8 @@ class HexaryTrie:
         deleting any pre-existing nodes).
         """
         self.db = db
+        self._ref_count: dict[bytes, int] | None
+        self._pending_prune_keys: dict[bytes, int] | None
         validate_is_bytes(root_hash)
         self.root_hash = root_hash
         self.is_pruning = prune
@@ -142,8 +145,8 @@ class HexaryTrie:
             return self._get(root_hash, trie_key)
         except MissingTraversalNode as traverse_exc:
             raise MissingTrieNode(
-                traverse_exc.missing_node_hash,
-                root_hash,
+                cast(Hash32, traverse_exc.missing_node_hash),
+                cast(Hash32, root_hash),
                 key,
                 traverse_exc.nibbles_traversed,
             ) from traverse_exc
@@ -330,7 +333,10 @@ class HexaryTrie:
         # Indicate more information about which key was requested, which node was
         # missing, etc
         raise MissingTrieNode(
-            exception.args[0], self.root_hash, key, prefix=None
+            cast(Hash32, exception.args[0]),
+            cast(Hash32, self.root_hash),
+            key,
+            prefix=None,
         ) from exception
 
     @prune_pending
@@ -426,7 +432,7 @@ class HexaryTrie:
                 return proven_snapshot.get(key)
             except MissingTrieNode as e:
                 raise BadTrieProof(
-                    f"Missing proof node with hash {e.missing_node_hash}"
+                    f"Missing proof node with hash {e.missing_node_hash!r}"
                 ) from e
 
     def get_proof(self, key):
@@ -473,7 +479,9 @@ class HexaryTrie:
         try:
             raw_node = self.get_node(self.root_hash)
         except KeyError as exc:
-            raise MissingTraversalNode(self.root_hash, nibbles_traversed=()) from exc
+            raise MissingTraversalNode(
+                cast(Hash32, self.root_hash), nibbles_traversed=()
+            ) from exc
         else:
             return annotate_node(raw_node)
 
@@ -503,11 +511,14 @@ class HexaryTrie:
         Prune the given node if context exits cleanly.
         """
         if self.is_pruning:
+            assert self._pending_prune_keys is not None
             prune_key, node_body = self._node_to_db_mapping(node)
             if node_body is not None:
                 self._pending_prune_keys[prune_key] += 1
 
     def _complete_pruning(self):
+        assert self._pending_prune_keys is not None
+        assert self._ref_count is not None
         for key, number_prunes in self._pending_prune_keys.items():
             new_count = self._ref_count[key] - number_prunes
 
@@ -534,7 +545,7 @@ class HexaryTrie:
                 self._ref_count[key] = new_count
 
     def regenerate_ref_count(self):
-        new_ref_count = defaultdict(int)
+        new_ref_count: defaultdict[bytes, int] = defaultdict(int)
 
         keys_to_count = [self.root_hash]
         while keys_to_count:
@@ -576,12 +587,14 @@ class HexaryTrie:
     def _set_db_value(self, key, value):
         self.db[key] = value
         if self.is_pruning:
+            assert self._ref_count is not None
             self._ref_count[key] += 1
 
     def _set_root_node(self, root_node):
         validate_is_node(root_node)
 
         if self.is_pruning:
+            assert self._pending_prune_keys is not None
             # Root nodes are special: they are always hashed, which is a surprise to
             # the rest of the pruning logic. We have to catch if the root node is
             # small and prune it here.
@@ -870,7 +883,7 @@ class HexaryTrie:
 
     def __repr__(self) -> str:
         return (
-            f"HexaryTrie({self.db!r}, root_hash={self.root_hash}, "
+            f"HexaryTrie({self.db!r}, root_hash={self.root_hash!r}, "
             f"prune={self.is_pruning})"
         )
 

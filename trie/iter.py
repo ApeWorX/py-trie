@@ -48,7 +48,7 @@ class NodeIterator:
         if key_bytes is None:
             next_key = self._get_next_key(root, none_traversed)
         else:
-            key = bytes_to_nibbles(key_bytes)
+            key = Nibbles(bytes_to_nibbles(key_bytes))
             next_key = self._get_key_after(root, key, none_traversed)
 
         if next_key is None:
@@ -86,7 +86,7 @@ class NodeIterator:
                     # right of the target
                     next_key = self._get_key_after(
                         next_node,
-                        key_remaining,
+                        Nibbles(key_remaining),
                         traversed + next_segment,
                     )
                     if next_key is None:

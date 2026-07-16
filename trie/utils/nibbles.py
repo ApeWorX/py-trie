@@ -58,15 +58,17 @@ def is_nibbles_terminated(nibbles: Sequence[int]) -> bool:
 @to_tuple
 def add_nibbles_terminator(nibbles: Sequence[int]) -> Iterator[int]:
     if is_nibbles_terminated(nibbles):
-        return nibbles
-    return itertools.chain(nibbles, (NIBBLE_TERMINATOR,))
+        yield from nibbles
+    else:
+        yield from itertools.chain(nibbles, (NIBBLE_TERMINATOR,))
 
 
 @to_tuple
 def remove_nibbles_terminator(nibbles: Sequence[int]) -> Iterator[int]:
     if is_nibbles_terminated(nibbles):
-        return nibbles[:-1]
-    return nibbles
+        yield from nibbles[:-1]
+    else:
+        yield from nibbles
 
 
 def encode_nibbles(nibbles: Sequence[int]) -> bytes:

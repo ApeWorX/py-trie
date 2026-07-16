@@ -47,17 +47,17 @@ from .nibbles import (
 )
 
 
-def get_node_type(node: list) -> int:
+def get_node_type(node: RawHexaryNode) -> int:
     if node == BLANK_NODE:
         return NODE_TYPE_BLANK
-    elif len(node) == 2:
+    elif isinstance(node, list) and len(node) == 2:
         key, _ = node
-        nibbles = decode_nibbles(key)
+        nibbles = decode_nibbles(cast(bytes, key))
         if is_nibbles_terminated(nibbles):
             return NODE_TYPE_LEAF
         else:
             return NODE_TYPE_EXTENSION
-    elif len(node) == 17:
+    elif isinstance(node, list) and len(node) == 17:
         return NODE_TYPE_BRANCH
     else:
         raise InvalidNode("Unable to determine node type")
@@ -96,9 +96,11 @@ def decode_node(encoded_node_or_hash: bytes | list) -> bytes | list:
         return rlp.decode(encoded_node_or_hash)
 
 
-def extract_key(node: list) -> tuple[int, ...]:
+def extract_key(node: RawHexaryNode) -> tuple[int, ...]:
+    if not isinstance(node, list):
+        raise InvalidNode("Blank node does not have a key")
     prefixed_key, _ = node
-    key = remove_nibbles_terminator(decode_nibbles(prefixed_key))
+    key = remove_nibbles_terminator(decode_nibbles(cast(bytes, prefixed_key)))
     return key
 
 
@@ -110,7 +112,7 @@ def compute_extension_key(nibbles: Sequence[int]) -> bytes:
     return encode_nibbles(nibbles)
 
 
-def get_common_prefix_length(left_key: tuple, right_key: tuple) -> int:
+def get_common_prefix_length(left_key: Sequence[Any], right_key: Sequence[Any]) -> int:
     for idx, (left_nibble, right_nibble) in enumerate(
         zip(left_key, right_key, strict=False)
     ):
@@ -121,7 +123,7 @@ def get_common_prefix_length(left_key: tuple, right_key: tuple) -> int:
 
 def consume_common_prefix(
     left_key: Sequence[int], right_key: Sequence[int]
-) -> tuple[tuple[int, ...], tuple[int, ...], tuple[int, ...]]:
+) -> tuple[Sequence[int], Sequence[int], Sequence[int]]:
     common_prefix_length = get_common_prefix_length(left_key, right_key)
     common_prefix = left_key[:common_prefix_length]
     left_remainder = left_key[common_prefix_length:]
@@ -139,7 +141,7 @@ def key_starts_with(full_key: tuple, partial_key: tuple) -> bool:
 
 
 # Binary Trie node utils
-def parse_node(node: bytes) -> tuple[int, bytes | None, bytes | None]:
+def parse_node(node: bytes) -> tuple[int, bytes, bytes]:
     """
     Input: a serialized node
     """
@@ -161,7 +163,9 @@ def parse_node(node: bytes) -> tuple[int, bytes | None, bytes | None]:
         if len(node) == 1:
             raise InvalidNode("Invalid leaf node, can not contain empty value")
         # Output: node type, None, value
-        return LEAF_TYPE, None, node[1:]
+        # The second field has no meaning for a leaf. Keep the runtime sentinel for
+        # backwards compatibility while exposing the byte-only fields used by callers.
+        return LEAF_TYPE, None, node[1:]  # type: ignore[return-value]
     else:
         raise InvalidNode("Unable to parse node")
 

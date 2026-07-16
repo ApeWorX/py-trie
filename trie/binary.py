@@ -75,6 +75,7 @@ class BinaryTrie:
                 return self._get(left_child, keypath[1:])
             else:
                 return self._get(right_child, keypath[1:])
+        raise Exception("Invariant: unreachable node type")
 
     def set(self, key: bytes, value: bytes) -> None:
         """
@@ -308,6 +309,7 @@ class BinaryTrie:
             return self._hash_and_save(
                 encode_branch_node(new_left_child, new_right_child)
             )
+        raise Exception("Invariant: unreachable node type")
 
     def exists(self, key: bytes) -> bool:
         validate_is_bytes(key)
