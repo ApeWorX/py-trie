@@ -29,11 +29,11 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "eth-hash>=0.1.0",
-    "eth-utils>=2.0.0",
+    "eth-hash>=0.1",
+    "eth-utils>=2",
     "eth-typing>=6.0,<7",
-    "hexbytes>=0.2.3",
-    "rlp>=3",
+    "hexbytes>=2",
+    "rlp>=5",
     "sortedcontainers>=2.1.0",
 ]
 
