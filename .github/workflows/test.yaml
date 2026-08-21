@@ -18,7 +18,7 @@ jobs:
           python-version: "3.10"
       - run: uv run --group lint ruff check .
       - run: uv run --group lint ruff format --check .
-      - run: uv run --group lint mdformat --check README.md .github/pull_request_template.md
+      - run: uv run --group lint mdformat --check *.md
 
   type-check:
     runs-on: ubuntu-latest
